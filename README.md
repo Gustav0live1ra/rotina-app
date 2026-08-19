@@ -1,0 +1,2 @@
+# rotina-app
+.
