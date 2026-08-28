@@ -1,11 +1,13 @@
 import {View,Text, StyleSheet, Pressable} from 'react-native';
 
 
-export default function TaskItem({ id, titulo, concluida, onRemover, onChangeStatus }) {
+export default function TaskItem({ id, titulo, concluida, prioridade, onRemover, onChangeStatus }) {
 
   return (
-    <View style={styles.container}>
-      <Pressable style={styles.taskItem} onPress={() => onChangeStatus(id)}>
+    <View style={[styles.container]}>
+      <Pressable 
+        style={[styles.taskItem, { borderLeftColor: coresPrioridade[prioridade], borderLeftWidth: 4 }]} 
+        onPress={() => onChangeStatus(id)}>
         <Text> 
           {concluida ? "✅" : "⬜"} {titulo}
         </Text>
@@ -17,6 +19,12 @@ export default function TaskItem({ id, titulo, concluida, onRemover, onChangeSta
   );
 }
 
+const coresPrioridade = {
+  Alta: '#EF4444',
+  Média: '#F59E0B',
+  Baixa: '#10B981',
+};
+
 const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
@@ -25,12 +33,12 @@ const styles = StyleSheet.create({
     },
     taskItem: {
         padding: 10,
-        backgroundColor: '#fee2e2',
-        borderRadius: 50,
+        backgroundColor: '#f3eeee',
+        borderRadius: 8,
     },
     lixeira: {
         padding: 10,
         backgroundColor: '#f2f2f2',
-        borderRadius: 8,
+        borderRadius: 50,
     }
 })
