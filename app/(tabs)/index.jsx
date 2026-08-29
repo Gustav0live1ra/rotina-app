@@ -1,14 +1,18 @@
 import TaskItem from '@/components/TaskItem';
-import { View, Text, StyleSheet, Pressable, TextInput } from 'react-native';
+import { View, Text, StyleSheet, Pressable, TextInput, Modal } from 'react-native';
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function HomeScreen() {
-  const [tarefas, setTarefas] = useState([]);
-  const [novoTitulo, setNovoTitulo] = useState("");
-  const [mostrarConcluidas, setMostrarConcluidas] = useState(false);
-  const [prioridadeSelecionada, setPrioridadeSelecionada] = useState("Média");
-  const [carregando, setCarregando] = useState(true);
+  const [tarefas, setTarefas] = useState([]);  //atualizar tarefas
+  const [novoTitulo, setNovoTitulo] = useState("");  //modificar titulo
+  const [mostrarConcluidas, setMostrarConcluidas] = useState(false);  //mostrar aba concluidas
+  const [prioridadeSelecionada, setPrioridadeSelecionada] = useState("Média");  //selecionar prioridade
+  const [menuAbertoId, setMenuAbertoId] = useState(null);  //o menu de qual tarefa ta aberto
+  const [tarefaEditandoId, setTarefaEditandoId] = useState(null); //tarefa em edicao
+  const [prioridadeEditada, setPrioridadeEditada] = useState("Média");  //editar prioridade modal
+  const [tituloEditado, setTituloEditado] = useState("");  //editar titulo modal
+  const [carregando, setCarregando] = useState(true); 
   const pendentes = tarefas.filter((tarefa) => tarefa.concluida === false);
   const concluidas = tarefas.filter((tarefa) => tarefa.concluida === true);
   
@@ -65,6 +69,35 @@ export default function HomeScreen() {
     setTarefas(tarefas.map((tarefa) =>
       tarefa.id === id ? { ...tarefa, concluida : !tarefa.concluida } : tarefa
     ));
+  };
+
+  const editarTarefa = (id, novoTitulo, novaPrioridade) => {
+    setTarefas(tarefas.map((tarefa) => 
+      tarefa.id === id ? 
+      { ...tarefa, titulo: novoTitulo, prioridade: novaPrioridade }
+      : tarefa
+    ));
+  };
+
+  const alternarMenu = (id) => {
+    setMenuAbertoId(menuAbertoId === id ? null : id);
+  };
+
+  const iniciarEdicao = (id) => {
+    const tarefa = tarefas.find((t) => t.id === id);
+    setTituloEditado(tarefa.titulo);
+    setPrioridadeEditada(tarefa.prioridade);
+    setTarefaEditandoId(id);
+    setMenuAbertoId(null);
+  };
+
+  const salvarEdicaoModal = () => {
+    if(tituloEditado !== ""){
+      editarTarefa(tarefaEditandoId, tituloEditado, prioridadeEditada);
+      setTarefaEditandoId(null);
+      setTituloEditado("");
+      setPrioridadeEditada("Média");
+    }
   }
 
   const pesoPrioridade = {Alta: 3, Média: 2, Baixa: 1};
@@ -85,7 +118,7 @@ export default function HomeScreen() {
            onPress={() => setPrioridadeSelecionada(nivel)}
            >
             <Text>{nivel}</Text>
-           </Pressable>
+          </Pressable>
         ))}
 
       </View>
@@ -115,6 +148,9 @@ export default function HomeScreen() {
             {...tarefa}
             onChangeStatus = {alternarStatus}
             onRemover = {removerTarefa}
+            menuAberto={menuAbertoId === tarefa.id}
+            onToggleMenu={alternarMenu}
+            onIniciarEdicao={iniciarEdicao}
           />
         ))}
       </View>
@@ -133,14 +169,50 @@ export default function HomeScreen() {
               {...tarefa}
               onChangeStatus={alternarStatus}
               onRemover={removerTarefa}
+              menuAberto={menuAbertoId === tarefa.id}
+              onToggleMenu={alternarMenu}
+              onIniciarEdicao={iniciarEdicao}
             />
           ))}
         </View>
       )}
     </View>
-    
+
+    <Modal
+      visible={tarefaEditandoId !== null}
+      transparent={true}
+      animationType='fade'
+      onRequestClose={() => setTarefaEditandoId(null)}  
+    >
+      <View style={styles.modalFundo}>
+        
+        <View style={styles.modalConteudo}>
+          <Text style={styles.text}>Modo Edição</Text>
+          <View style={styles.prioridadeContainer}>
+            {["Alta", "Média", "Baixa"].map((nivel) => (
+              <Pressable key={nivel}
+                style={[styles.prioridadeBotao, prioridadeEditada === nivel && styles.prioridadeBotaoAtivo]}
+                onPress={() => setPrioridadeEditada(nivel)}
+              >
+                <Text>{nivel}</Text>
+              </Pressable>
+            ))}
+          </View>
+          <TextInput
+            style={styles.input}
+            value={tituloEditado}
+            onChangeText={setTituloEditado}
+          />
+          
+          <Pressable style={styles.button} onPress={salvarEdicaoModal}>
+            <Text>Salvar</Text>
+          </Pressable>
+        </View>
+      </View>
+
+    </Modal>
     </View>
-    );
+  );
 }
 
 
@@ -154,7 +226,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 16,
+    marginBottom: 50,
     textAlign: 'center',
   },
   botoesContainer: {
@@ -167,13 +239,15 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderRadius: 8,
     padding: 10,
-    marginBottom: 12,    
+    marginBottom: 8,
+    width: '100%'
   },
   button: {
     backgroundColor: '#ccc',
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 8,
+    marginBottom: 16,
   },
   lista: {
     gap: 8, //espaço entre as tarefas
@@ -189,15 +263,16 @@ const styles = StyleSheet.create({
   },
   prioridadeContainer: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 15,
     paddingLeft: 10,
+    
   },
   prioridadeBotao: {
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 8,
     backgroundColor: '#f2f2f2',
-    marginBottom: 4,
+    marginBottom: 8,
   },
   prioridadeBotaoAtivo: {
     backgroundColor: '#b4ddce'
@@ -207,5 +282,24 @@ const styles = StyleSheet.create({
   color: '#6B7280',
   marginTop: 10,
   },
+  modalFundo: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    
+  },
+  modalConteudo: {
+    backgroundColor: 'rgb(246, 238, 5)',
+    borderRadius: 12,
+    padding: 20,
+    width: '85%',
+    alignItems: 'center',
+  }, 
+  text: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  }
 });
 
