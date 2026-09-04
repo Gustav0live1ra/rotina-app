@@ -3,6 +3,10 @@ import { View, Text, StyleSheet, Pressable, TextInput, Modal } from 'react-nativ
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+
+//levei a secao de concluidas para rotina e preciso tirar daqui, porém as tarefas vão continuar existindo com status de concluidas
+//então a gente faz um sistema de dupla verificação pra marcar como concluida, e exclui assim que o usúario confirmar
+
 export default function HomeScreen() {
   const [tarefas, setTarefas] = useState([]);  //atualizar tarefas
   const [novoTitulo, setNovoTitulo] = useState("");  //modificar titulo
@@ -13,8 +17,7 @@ export default function HomeScreen() {
   const [prioridadeEditada, setPrioridadeEditada] = useState("Média");  //editar prioridade modal
   const [tituloEditado, setTituloEditado] = useState("");  //editar titulo modal
   const [carregando, setCarregando] = useState(true); 
-  const pendentes = tarefas.filter((tarefa) => tarefa.concluida === false);
-  const concluidas = tarefas.filter((tarefa) => tarefa.concluida === true);
+  
   
 
   useEffect(() => {
@@ -101,13 +104,13 @@ export default function HomeScreen() {
   }
 
   const pesoPrioridade = {Alta: 3, Média: 2, Baixa: 1};
-  pendentes.sort(  //organizar as pendentes por prioridade
+  const tarefasSorted = [...tarefas].sort(  //organizar as tarefas por prioridade
     (a,b) => pesoPrioridade[b.prioridade] - pesoPrioridade[a.prioridade]
   );
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tarefas Pendentes: {pendentes.length}</Text>
+      <Text style={styles.title}>Tarefas Pendentes: {tarefas.length}</Text>
 
       <View style={styles.prioridadeContainer}>
         {["Alta", "Média", "Baixa"].map((nivel) => ( //cria 3 botoes com o map
@@ -138,12 +141,12 @@ export default function HomeScreen() {
         </Pressable>
 
       </View>
-      {pendentes.length === 0 && (
+      {tarefas.length === 0 && (
         <Text style={styles.vazio}>Nenhuma tarefa pendente🎉</Text>
       )}
 
       <View style={styles.lista}>
-        {pendentes.map((tarefa) => (
+        {tarefasSorted.map((tarefa) => (
           <TaskItem key={tarefa.id}
             {...tarefa}
             onChangeStatus = {alternarStatus}
@@ -154,29 +157,6 @@ export default function HomeScreen() {
           />
         ))}
       </View>
-
-    <View style={styles.secaoConcluidas}>
-      <Pressable onPress={() => setMostrarConcluidas(!mostrarConcluidas)}>
-        <Text style={styles.toggleTexto}>
-          {mostrarConcluidas ? "▼" : "▶"} Concluídas ({concluidas.length})
-        </Text>
-      </Pressable>
-
-      {mostrarConcluidas && ( //renderiza se mostrarConcluidas for verdadeiro
-        <View style={styles.lista}>
-          {concluidas.map((tarefa) => (
-            <TaskItem key={tarefa.id}
-              {...tarefa}
-              onChangeStatus={alternarStatus}
-              onRemover={removerTarefa}
-              menuAberto={menuAbertoId === tarefa.id}
-              onToggleMenu={alternarMenu}
-              onIniciarEdicao={iniciarEdicao}
-            />
-          ))}
-        </View>
-      )}
-    </View>
 
     <Modal
       visible={tarefaEditandoId !== null}

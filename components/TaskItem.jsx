@@ -6,19 +6,29 @@ const coresPrioridade = {
   Baixa: '#10B981',
 };
 
-export default function TaskItem({ id, titulo, concluida, prioridade, onRemover, onChangeStatus, menuAberto, onToggleMenu, onIniciarEdicao }) {
+export default function TaskItem({ id, titulo, concluida, concluidaHoje, prioridade, onRemover, onChangeStatus, menuAberto, onToggleMenu, onIniciarEdicao }) {
   return (
     <View style={styles.container}>
       <Pressable
-        style={[styles.taskItem, { borderLeftColor: coresPrioridade[prioridade], borderLeftWidth: 4 }]}
+        style={prioridade === null ? styles.taskItem : [styles.taskItem, { borderLeftColor: coresPrioridade[prioridade], borderLeftWidth: 4 }]}
         onPress={() => onChangeStatus(id)}
       >
-        <Text>{concluida ? "✅" : "⬜"} {titulo}</Text>
+        {concluida !== null ?
+        <Text>{concluida ? "✅" : "⬜"} {titulo}</Text> :
+        <Text>{concluidaHoje ? "✅" : "⬜"} {titulo}</Text> }
       </Pressable>
 
-      <Pressable onPress={() => onToggleMenu(id)}>
-        <Text style={styles.pontinhos}>⋮</Text>
-      </Pressable>
+      {concluida !== null ? (
+        <Pressable onPress={() => onToggleMenu(id)}>
+          <Text style={styles.pontinhos}>⋮</Text>
+        </Pressable>
+      )
+      : (
+        <Pressable onPress={() => onRemover(id)}>
+          <Text style={styles.lixeira}>✖️</Text>
+        </Pressable>
+      )}
+
 
       {menuAberto && (
         <View style={styles.menu}>
@@ -30,37 +40,21 @@ export default function TaskItem({ id, titulo, concluida, prioridade, onRemover,
           </Pressable>
         </View>
       )}
+      
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flexDirection: 'row',
-    alignItems: 'center' 
-    },
+  container: { flexDirection: 'row', alignItems: 'center' },
   taskItem: { 
-    padding: 10,
-    backgroundColor: '#f3eeee',
-    borderRadius: 8,
-    flex: 1 
-  },
+    padding: 10, backgroundColor: '#f3eeee', borderRadius: 8, flex: 1 },
   pontinhos: {
-    fontSize: 20, 
-    paddingHorizontal: 8 },
+    fontSize: 20, paddingHorizontal: 8 },
   menu: {
-    position: 'absolute', 
-    top: 30, 
-    right: 0, 
-    backgroundColor: '#fff',
-    borderRadius: 8, 
-    padding: 8, 
-    elevation: 4, 
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 }, 
-    shadowOpacity: 0.2, 
-    shadowRadius: 4, 
-    zIndex: 10,
-  },
-  menuItem: { paddingVertical: 6, paddingHorizontal: 12 },
+    position: 'absolute', top: 30, right: 0, backgroundColor: '#fff',borderRadius: 8, padding: 8, 
+    elevation: 4, shadowColor: '#000',shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, 
+    shadowRadius: 4, zIndex: 10 },
+  menuItem: { paddingVertical: 6, paddingHorizontal: 12 }, 
+  lixeira: { backgroundColor: '#ffdbdb', paddingVertical: 8, paddingHorizontal: 8, alignItems: 'center' }
 });
