@@ -6,37 +6,27 @@ const coresPrioridade = {
   Baixa: '#10B981',
 };
 
-export default function TaskItem({ id, titulo, concluida, concluidaHoje, prioridade, onRemover, onChangeStatus, menuAberto, onToggleMenu, onIniciarEdicao }) {
+export default function TaskItem({ id, titulo, concluida, prioridade, onChangeStatus, menuAberto, onToggleMenu, onIniciarEdicao }) {
   return (
     <View style={styles.container}>
       <Pressable
-        style={prioridade === null ? styles.taskItem : [styles.taskItem, { borderLeftColor: coresPrioridade[prioridade], borderLeftWidth: 4 }]}
+        style={[styles.taskItem, { borderLeftColor: coresPrioridade[prioridade], borderLeftWidth: 4 }]}
         onPress={() => onChangeStatus(id)}
       >
-        {concluida !== null ?
-        <Text>{concluida ? "✅" : "⬜"} {titulo}</Text> :
-        <Text>{concluidaHoje ? "✅" : "⬜"} {titulo}</Text> }
+        <Text>{concluida ? "✅" : "⬜"} {titulo}</Text>
       </Pressable>
-
-      {concluida !== null ? (
-        <Pressable onPress={() => onToggleMenu(id)}>
-          <Text style={styles.pontinhos}>⋮</Text>
-        </Pressable>
-      )
-      : (
-        <Pressable onPress={() => onRemover(id)}>
-          <Text style={styles.lixeira}>✖️</Text>
-        </Pressable>
-      )}
-
+      
+      <Pressable onPress={() => onToggleMenu(id)}>
+        <Text style={styles.pontinhos}>⋮</Text>
+      </Pressable>
 
       {menuAberto && (
         <View style={styles.menu}>
           <Pressable onPress={() => onIniciarEdicao(id)}>
             <Text style={styles.menuItem}>Editar</Text>
           </Pressable>
-          <Pressable onPress={() => onRemover(id)}>
-            <Text style={styles.menuItem}>Excluir</Text>
+          <Pressable onPress={() => onChangeStatus(id)}>
+            <Text style={styles.menuItem}>Concluir</Text>
           </Pressable>
         </View>
       )}
@@ -56,5 +46,5 @@ const styles = StyleSheet.create({
     elevation: 4, shadowColor: '#000',shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, 
     shadowRadius: 4, zIndex: 10 },
   menuItem: { paddingVertical: 6, paddingHorizontal: 12 }, 
-  lixeira: { backgroundColor: '#ffdbdb', paddingVertical: 8, paddingHorizontal: 8, alignItems: 'center' }
+  
 });

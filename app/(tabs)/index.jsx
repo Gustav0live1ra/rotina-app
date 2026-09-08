@@ -2,7 +2,7 @@ import TaskItem from '@/components/TaskItem';
 import { View, Text, StyleSheet, Pressable, TextInput, Modal } from 'react-native';
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { Alert } from 'react-native';
 
 //levei a secao de concluidas para rotina e preciso tirar daqui, porém as tarefas vão continuar existindo com status de concluidas
 //então a gente faz um sistema de dupla verificação pra marcar como concluida, e exclui assim que o usúario confirmar
@@ -10,7 +10,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export default function HomeScreen() {
   const [tarefas, setTarefas] = useState([]);  //atualizar tarefas
   const [novoTitulo, setNovoTitulo] = useState("");  //modificar titulo
-  const [mostrarConcluidas, setMostrarConcluidas] = useState(false);  //mostrar aba concluidas
   const [prioridadeSelecionada, setPrioridadeSelecionada] = useState("Média");  //selecionar prioridade
   const [menuAbertoId, setMenuAbertoId] = useState(null);  //o menu de qual tarefa ta aberto
   const [tarefaEditandoId, setTarefaEditandoId] = useState(null); //tarefa em edicao
@@ -101,7 +100,19 @@ export default function HomeScreen() {
       setTituloEditado("");
       setPrioridadeEditada("Média");
     }
-  }
+  };
+
+  const confirmarConclusao = (id) => {
+    let nome = tarefas.find((tarefa) => tarefa.id === id);
+    nome = nome.titulo;
+    Alert.alert("Concluir tarefa",
+      `Marcar '${nome}' como concluída e removê-la da lista?`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        { text: "Concluir", onPress: () => removerTarefa(id)}
+      ]
+    )
+  };
 
   const pesoPrioridade = {Alta: 3, Média: 2, Baixa: 1};
   const tarefasSorted = [...tarefas].sort(  //organizar as tarefas por prioridade
@@ -149,7 +160,7 @@ export default function HomeScreen() {
         {tarefasSorted.map((tarefa) => (
           <TaskItem key={tarefa.id}
             {...tarefa}
-            onChangeStatus = {alternarStatus}
+            onChangeStatus = {confirmarConclusao}
             onRemover = {removerTarefa}
             menuAberto={menuAbertoId === tarefa.id}
             onToggleMenu={alternarMenu}
